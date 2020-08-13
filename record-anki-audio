@@ -32,7 +32,7 @@
 # Both is to prevent problems due to long or repeated key presses.
 MIN_TIME_MS=1000
 WARN_TIME_S=60
-COLLECTION='/home/johannes/.local/share/Anki2/日本語/collection.media/'
+COLLECTION='/home/danny/.local/share/Anki2/danny/collection.media/'
 TMP_AUDIO='/tmp/ankiAudioRecording.mp3'
 TMP_PID='/tmp/ankiAudioRecordingPID'
 TMP_TIME='/tmp/ankiAudioRecordingStartTime'
@@ -79,7 +79,7 @@ function recordingWarning {
 	if [[ $(getRecordTimeMs) -gt -1 && "$currentPID" -eq "$startPID" ]]
 	then
 		# The recoding is still running, warn the user!
-		kdialog --passivepopup "An audio recording runs since $WARN_TIME_S seconds."
+		notify-send "An audio recording runs since $WARN_TIME_S seconds."
 	fi
 }
 
@@ -90,13 +90,14 @@ then
 	# (Avoiding repeated execution for longer shortcut presses.)
 	if [[ $(getRecordTimeMs) -lt "$MIN_TIME_MS" ]]
 	then
-		kdialog --passivepopup "The audio recording state has not been altered."
+		notify-send -t 10000 "The audio recording state has not been altered."
 		exit
 	fi
 	# Block further executions of this script by updating the start time:
 	getTimeMs > "$TMP_TIME"
 	# Stop the recording process:
 	kill -s TERM $(cat "$TMP_PID")
+	notify-send -t 3000 "Recording stopped!"
 	# Wait for the output audio file to be closed.
 	while [[ ! -z "$(lsof "$TMP_AUDIO" 2> /dev/null)" ]]
 	do
@@ -118,6 +119,7 @@ else
 	# Start the recording and store the PID:
 	# (ffmpeg + pulse doesn't work any more! Only sox with configured default in pavucontrol survives reboot.)
 	#ffmpeg -y -f pulse -i alsa_output.pci-0000_00_1b.0.analog-stereo.monitor -b:a 128k "$TMP_AUDIO" &
+	notify-send -t 2000 "Recording audio..."
 	rec -c 2 -r 44100 "$TMP_AUDIO" &
 	echo $! > "$TMP_PID"
 	# Save the start time of this recording. The file creation date might be not precise enough.
